@@ -91,10 +91,10 @@ LoadConfigTBL_inclinometer_Ordered:
 	mov	reg[01h], 00h		; Port_0_IntEn register (PRT0IE)
 	mov	reg[04h], 00h		; Port_1_Data register (PRT1DR)
 	M8C_SetBank1
-	mov	reg[04h], 00h		; Port_1_DriveMode_0 register (PRT1DM0)
-	mov	reg[05h], ffh		; Port_1_DriveMode_1 register (PRT1DM1)
+	mov	reg[04h], 3ch		; Port_1_DriveMode_0 register (PRT1DM0)
+	mov	reg[05h], c3h		; Port_1_DriveMode_1 register (PRT1DM1)
 	M8C_SetBank0
-	mov	reg[07h], 7fh		; Port_1_DriveMode_2 register (PRT1DM2)
+	mov	reg[07h], 43h		; Port_1_DriveMode_2 register (PRT1DM2)
 	mov	reg[06h], 00h		; Port_1_GlobalSelect register (PRT1GS)
 	M8C_SetBank1
 	mov	reg[06h], 00h		; Port_1_IntCtrl_0 register (PRT1IC0)

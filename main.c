@@ -16,6 +16,11 @@ void 	delay(unsigned int t);
 #define CSB		0x02  //P0.1
 
 #define BTN		0x80  //P1.7
+//изходи за управление на релетата за хидравликата
+#define RELX1	0x04	//P1.2
+#define RELX2	0x80	//P1.3
+#define RELY1	0x10	//P1.4
+#define RELY2	0x20	//P1.5
 //Команди на SCA100T
 #define MEAS	0x00	//Режим на измерване
 #define RWTR	0x08	//Чете температура
@@ -24,14 +29,20 @@ void 	delay(unsigned int t);
 #define	RDAX	0x10 
 #define RDAY	0x11	//Четене на X/Y
 
-BYTE	shadow_P0;
+BYTE	shadow_P0, shadow_P1;
 
 char buff[64];	
-float ax,ay,offx,offy,tmpf; //променливите 
-WORD dx,dy;
-WORD dOffX, dOffY; ////Спрямо тези променливи става проверката за постигната вертикалност.
-char dcnt; //брояч за изобразяване на стойностите през няколко
-char cnt, n, p1, t; //брояч за следене на бутона
+float ax,ay;	//Ъгъл на наклона в градуси. Ползва се за показание на дисплея
+float offx,offy;	//Офсет.  Отклонението от тази стойност дава ъгъла на отклонение.				 
+					//float променливите се ползват за изчисляване на ъгъла за показание на  дисплея.
+WORD dx,dy;			//в тези променливи се пази прочетеното целочислено показание на инклиномера.
+WORD dOffX, dOffY;	//Спрямо тези променливи става проверката за постигната вертикалност. За вертикално положение на чипа офсета е 1024.
+					//в EEPROM се записват калибриращи стойности на офсета различни от 1024 които да компенсират отклонението от вертикала при монтажа.
+					//Калибрирането става с натискане и задържане на бутона повече от 7 секунди.  
+float tmpf; 
+char dcnt; //брояч за изобразяване на стойностите през няколко цикъла 
+char cnt; //брояч за следене на бутона
+char n, p1, t;
 char fAdjustX, fAdjustY; //Тeзи флагове се вдигат при кратко натискане на бутона и остават вдигнати до постигане на 
 						//верикално положение или до повторно кратко натискане
 
@@ -39,6 +50,7 @@ void main(void)
 {
 	// M8C_EnableGInt ; // Uncomment this line to enable Global Interrupts
 	shadow_P0 = CSB; //Такта е първоначално в 1, SCK и MOSI са 0
+	shadow_P1 = 0;
 	LCD_Start();
 	LCD_Init();	
 	
@@ -138,6 +150,8 @@ readSPI:
 					{//Излиза се от режим на изправяне
 						fAdjustX=0;
 						fAdjustY=0;
+						shadow_P1 = 0;
+						PRT1DR = 0;
 					}
 					LCD_Position(0,0);	
 					LCD_PrCString("                ");
@@ -177,12 +191,6 @@ readSPI:
 			tmpf = (197.0f - (float)t) * 0.92f;
 			if(tmpf<0.0f) tmpf=0.0f;
 			t = (char) tmpf;
-			//ZA PROBA--------------
-			LCD_Position(0,0);	
-			LCD_PrCString("                ");
-			csprintf(buff,"t=%d",t);
-			LCD_Position(0,0);	
-			LCD_PrString(buff);		
   			//-------------------------
 			//Запис в EEPROM
 			buff[0] =(char)((dx & 0xff00)>>8);
@@ -247,6 +255,8 @@ displayValues:
 			{
 				fAdjustX=1;
 				LCD_PrCString("   0<<  ");
+				shadow_P1 |= RELX2;
+				shadow_P1 &= (~RELX1);
 			}
 			else
 			{
@@ -254,11 +264,15 @@ displayValues:
 				{
 					fAdjustX=1;
 					LCD_PrCString(" >>0    ");
+					shadow_P1 |= RELX1;
+					shadow_P1 &= (~RELX2);
 				}
 				else 
 				{//Постигната е вертикалност по Х
 					fAdjustX=0;
 					LCD_PrCString(">>>0<<< ");
+					shadow_P1 &= (~RELX2);
+					shadow_P1 &= (~RELX1);
 					if(fAdjustY==0) delay(1000); //Задържа 1 секунда в момента когато има пълна вертикалност
 				}
 			}
@@ -268,6 +282,8 @@ displayValues:
 			{
 				fAdjustY=1;
 				LCD_PrCString("   0<<  ");
+				shadow_P1 |= RELY2;
+				shadow_P1 &= (~RELY1);				
 			}
 			else
 			{				
@@ -275,14 +291,19 @@ displayValues:
 				{
 					fAdjustY=1;
 					LCD_PrCString(" >>0    ");
+					shadow_P1 |= RELY1;
+					shadow_P1 &= (~RELY2);					
 				}
 				else 
 				{//Постигната е вертикалност по Y
 					fAdjustY=0;
 					LCD_PrCString(">>>0<<< ");
+					shadow_P1 &= (~RELY2);
+					shadow_P1 &= (~RELY1);					
 					if(fAdjustX==0) delay(1000); //Задържа 1 секунда в момента когато има пълна вертикалност
 				}
 			}
+			PRT1DR = shadow_P1;
 		}	
 	}
 }	
