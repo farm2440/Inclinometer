@@ -1,0 +1,42 @@
+Starting MAKE...
+creating project.mk 
+lib/eeprom.asm
+lib/lcd.asm
+lib/psocconfig.asm
+lib/psocconfigtbl.asm
+./boot.asm
+Linking..
+LMM info: area 'InterruptRAM' uses 3 bytes in SRAM bank 0
+LMM info: area 'data' item of 64 bytes allocated in SRAM page 0
+LMM info: area 'data' item of 25 bytes allocated in SRAM page 0
+LMM info: area 'data' item of 15 bytes allocated in SRAM page 0
+LMM info: area 'virtual_registers' uses 11 bytes in SRAM page 0
+LMM info: area 'data' item of 4 bytes allocated in SRAM page 0
+LMM info: area 'data' item of 4 bytes allocated in SRAM page 0
+LMM info: area 'data' item of 4 bytes allocated in SRAM page 0
+LMM info: area 'data' item of 4 bytes allocated in SRAM page 0
+LMM info: area 'data' item of 4 bytes allocated in SRAM page 0
+LMM info: area 'data' item of 2 bytes allocated in SRAM page 0
+LMM info: area 'data' item of 2 bytes allocated in SRAM page 0
+LMM info: area 'data' item of 2 bytes allocated in SRAM page 0
+LMM info: area 'data' item of 2 bytes allocated in SRAM page 0
+LMM info: area 'data' item of 2 bytes allocated in SRAM page 0
+LMM info: area 'data' item of 2 bytes allocated in SRAM page 0
+LMM info: area 'data' item of 1 bytes allocated in SRAM page 0
+LMM info: area 'data' item of 1 bytes allocated in SRAM page 0
+LMM info: area 'data' item of 1 bytes allocated in SRAM page 0
+LMM info: area 'data' item of 1 bytes allocated in SRAM page 0
+LMM info: area 'data' item of 1 bytes allocated in SRAM page 0
+LMM info: area 'data' item of 1 bytes allocated in SRAM page 0
+LMM info: area 'data' item of 1 bytes allocated in SRAM page 0
+LMM info: area 'data' item of 1 bytes allocated in SRAM page 0
+idata dump at output/Inclinometer.idata
+  ROM 65% full. 21262 out of 32768 bytes used (does not include absolute areas).
+  RAM 9% full. 158 bytes used (does not include stack usage).
+Built with ICCM8C STD V7.05.00
+ 
+Inclinometer - 0 error(s) 0 warning(s) 17:53:34
+
+Performing Project Clean...
+done
+
