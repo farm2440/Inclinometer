@@ -10,7 +10,8 @@
    C:/PROGRA~1/Cypress/PSOCDE~1/5.3/Common/CY3E64~1/tools/include/_const.h\
    C:/PROGRA~1/Cypress/PSOCDE~1/5.3/Common/CY3E64~1/tools/include/math.h\
    C:/PROGRA~1/Cypress/PSOCDE~1/5.3/Common/CY3E64~1/tools/include/stdarg.h\
-   C:/PROGRA~1/Cypress/PSOCDE~1/5.3/Common/CY3E64~1/tools/include/stdio.h
+   C:/PROGRA~1/Cypress/PSOCDE~1/5.3/Common/CY3E64~1/tools/include/stdio.h\
+   C:/PROGRA~1/Cypress/PSOCDE~1/5.3/Common/CY3E64~1/tools/include/string.h
 ./lib/obj/eeprom.o :  ./lib/EEPROM.inc\
    C:/PROGRA~1/Cypress/PSOCDE~1/5.3/Common/CY3E64~1/tools/include/CY8C29~1/E2PROM~1.INC\
    C:/PROGRA~1/Cypress/PSOCDE~1/5.3/Common/CY3E64~1/tools/include/CY8C29~1/m8c.inc\

@@ -5,6 +5,9 @@
 #include "PSoCAPI.h"    // PSoC API definitions for all User Modules
 #include <math.h>
 #include <stdio.h>
+#include <string.h>
+
+#define STEADY_CYCLES 3 // Брой поредни цикъла които трябва да се отчете вертикалност за да завърши изправянето
 
 WORD	spiTalk(BYTE cmd);
 void 	delay(unsigned int t);
@@ -42,6 +45,7 @@ WORD dOffX, dOffY;	//Спрямо тези променливи става пр�
 float tmpf; 
 char dcnt; //брояч за изобразяване на стойностите през няколко цикъла 
 char cnt; //брояч за следене на бутона
+char cntVSteady; //Брояч който намалява с 1 няколко поредни цикъла в които има вертикалност и при достигане на 0 изправянето завършва.
 char n, p1, t;
 char fAdjustX, fAdjustY; //Тeзи флагове се вдигат при кратко натискане на бутона и остават вдигнати до постигане на 
 						//верикално положение или до повторно кратко натискане
@@ -57,7 +61,7 @@ void main(void)
 	LCD_Position(0,0);	
 	LCD_PrCString("STIV Engineering");
 	LCD_Position(1,0);	
-	LCD_PrCString(" v.1.0.37       ");	
+	LCD_PrCString(" v.1.0.41       ");	
 	
 	delay(2000);
 	
@@ -82,7 +86,7 @@ void main(void)
 	offy = dOffY;
 	
 	PRT0DR = shadow_P0;
-		
+	cntVSteady=STEADY_CYCLES;
 	dcnt = 1;
 	
 	while(1)
@@ -122,6 +126,8 @@ readSPI:
 			2. At the bottom of local.mk, add CODECOMPRESSOR:=$(CODECOMPRESSOR) -llpm8c  (this will link the liblpm8c.a , which contains the long data type capability of printf/scanf)
 			3. Save local.mk file and build the project.
 		*/
+		
+		//Проверка за натиснат бутон
 		p1=PRT1DR & 0x80;
 		if(p1 != BTN)
 		{//бутона е натиснат
@@ -145,6 +151,7 @@ readSPI:
 						dcnt=1;
 						fAdjustX=1;
 						fAdjustY=1;
+						cntVSteady=STEADY_CYCLES;
 					}
 					else
 					{//Излиза се от режим на изправяне
@@ -232,13 +239,34 @@ displayValues:
 		if(dcnt==0)
 		{
 			dcnt = 10;
-			csprintf(buff,"x=%6.2f",ax);
-			LCD_Position(0,0);	
-			LCD_PrString(buff);	
 	
-			csprintf(buff,"y=%6.2f",ay);
+			LCD_Position(0,0);	
+			//LCD_PrCString("x=");
+			csprintf(buff,"%5.1f",ax);
+			if( (*strchr(buff,(int)'.') )==NULL)
+			{
+				LCD_PrCString("x=");
+				cstrcat(buff,".0");			
+				LCD_PrString(&buff[2]);	
+			} else
+			{
+				LCD_PrCString("x=");
+				LCD_PrString(buff);		
+			}	
+
 			LCD_Position(1,0);	
-			LCD_PrString(buff);	
+			//LCD_PrCString("y=");
+			csprintf(buff,"%5.1f",ay);
+			if( (*strchr(buff,(int)'.') )==NULL)
+			{
+				LCD_PrCString("y=");
+				cstrcat(buff,".0");			
+				LCD_PrString(&buff[2]);	
+			} else
+			{
+				LCD_PrCString("y=");
+				LCD_PrString(buff);		
+			}
 		}
 		//Проверка за вертикалност
 		if(	(fAdjustX==0) && (fAdjustY==0))
@@ -254,6 +282,7 @@ displayValues:
 			if(dx>(dOffX+29))
 			{
 				fAdjustX=1;
+				cntVSteady=STEADY_CYCLES;
 				LCD_PrCString("   0<<  ");
 				shadow_P1 |= RELX2;
 				shadow_P1 &= (~RELX1);
@@ -263,6 +292,7 @@ displayValues:
 				if(dx<(dOffX-29))
 				{
 					fAdjustX=1;
+					cntVSteady=STEADY_CYCLES;
 					LCD_PrCString(" >>0    ");
 					shadow_P1 |= RELX1;
 					shadow_P1 &= (~RELX2);
@@ -273,7 +303,11 @@ displayValues:
 					LCD_PrCString(">>>0<<< ");
 					shadow_P1 &= (~RELX2);
 					shadow_P1 &= (~RELX1);
-					if(fAdjustY==0) delay(1000); //Задържа 1 секунда в момента когато има пълна вертикалност
+					if(fAdjustY==0)
+					{//Има вертикалност и по Y. Проверка за завършване на изправянето
+						cntVSteady--;
+						delay(100); //Задържа 1 секунда в момента когато има пълна вертикалност
+					}
 				}
 			}
 			//Проверка по Y
