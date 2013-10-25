@@ -33,12 +33,9 @@ LMM info: area 'data' item of 1 bytes allocated in SRAM page 0
 LMM info: area 'data' item of 1 bytes allocated in SRAM page 0
 LMM info: area 'data' item of 1 bytes allocated in SRAM page 0
 idata dump at output/Inclinometer.idata
-  ROM 66% full. 21607 out of 32768 bytes used (does not include absolute areas).
+  ROM 66% full. 21584 out of 32768 bytes used (does not include absolute areas).
   RAM 9% full. 160 bytes used (does not include stack usage).
 Built with ICCM8C STD V7.05.00
  
-Inclinometer - 0 error(s) 0 warning(s) 18:37:17
-
-Performing Project Clean...
-done
+Inclinometer - 0 error(s) 0 warning(s) 13:31:04
 

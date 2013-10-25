@@ -8,6 +8,7 @@
 #include <string.h>
 
 #define STEADY_CYCLES 3 // Брой поредни цикъла които трябва да се отчете вертикалност за да завърши изправянето
+#define STEADY_TIMEC  100 //Времеконстанта между две проверки за вертикалност
 
 WORD	spiTalk(BYTE cmd);
 void 	delay(unsigned int t);
@@ -61,7 +62,7 @@ void main(void)
 	LCD_Position(0,0);	
 	LCD_PrCString("STIV Engineering");
 	LCD_Position(1,0);	
-	LCD_PrCString(" v.1.0.41       ");	
+	LCD_PrCString(" v.1.0.42       ");	
 	
 	delay(2000);
 	
@@ -86,7 +87,7 @@ void main(void)
 	offy = dOffY;
 	
 	PRT0DR = shadow_P0;
-	cntVSteady=STEADY_CYCLES;
+	cntVSteady=0;
 	dcnt = 1;
 	
 	while(1)
@@ -129,8 +130,7 @@ readSPI:
 		
 		//Проверка за натиснат бутон
 		p1=PRT1DR & 0x80;
-		if(p1 != BTN)
-		{//бутона е натиснат
+		if(p1 != BTN) {//бутона е натиснат
 			//1.ако е натиснат и отпуснат за време под 1 секунда се влиза/излиза в режим на изправяне
 			//2.ако след първата секунда не е отпуснат се изписва надпис "CALIBRATE....." като точките се изписват по 1 в секунда.
 			//  ако в този период бутона се отпусне нищо не се случва
@@ -144,22 +144,15 @@ readSPI:
 		  	for(cnt=150 ; cnt !=0 ; cnt --) 
 			{
 				delay(10);
-				if(PRT1DR & BTN) 
-				{//бутона е отпуснат - кратко натискане. Вдига се флага за режим на изправяне ако и двата са били свалени
-					if((fAdjustX==0) && (fAdjustY==0))
-					{//Влиза в режим на изправяне
-						dcnt=1;
-						fAdjustX=1;
-						fAdjustY=1;
-						cntVSteady=STEADY_CYCLES;
-					}
-					else
-					{//Излиза се от режим на изправяне
-						fAdjustX=0;
-						fAdjustY=0;
+				if(PRT1DR & BTN) {//бутона е отпуснат - кратко натискане. Вдига се флага за режим на изправяне ако и двата са били свалени
+					if(cntVSteady) {//Излиза се от режим на изправяне					
+						cntVSteady=0;
 						shadow_P1 = 0;
 						PRT1DR = 0;
 					}
+					else cntVSteady=STEADY_CYCLES;//Влиза в режим на изправяне
+					
+					dcnt=1;
 					LCD_Position(0,0);	
 					LCD_PrCString("                ");
 					goto displayValues;
@@ -175,15 +168,16 @@ readSPI:
 				{
 					delay(10);
 					if(PRT1DR & BTN) 
-					{
+					{//Ако бутона е отпуснат се излиза и не се вземат офсети
 						LCD_Position(0,0);	
 						LCD_PrCString("                ");
+						dcnt = 1;
 						goto displayValues;
 					}
 				}
 				LCD_WriteData('.');
 			}
-			//3.
+			//3. Вземат се офсетите и се записват в EEPROM
 			dx = spiTalk(RDAX);
 			dy = spiTalk(RDAY);
 			offx=dx;
@@ -232,6 +226,7 @@ readSPI:
 			LCD_PrCString("                ");
 			LCD_Position(1,0);	
 			LCD_PrCString("                ");
+			dcnt = 1;
 		}	
 		
 displayValues:		
@@ -269,7 +264,7 @@ displayValues:
 			}
 		}
 		//Проверка за вертикалност
-		if(	(fAdjustX==0) && (fAdjustY==0))
+		if(	cntVSteady==0 )
 		{//Не сме в режим на изправяне - всички символи след ъгъла се изтриват
 			LCD_Position(0,9);
 			LCD_PrCString("        ");
@@ -303,11 +298,6 @@ displayValues:
 					LCD_PrCString(">>>0<<< ");
 					shadow_P1 &= (~RELX2);
 					shadow_P1 &= (~RELX1);
-					if(fAdjustY==0)
-					{//Има вертикалност и по Y. Проверка за завършване на изправянето
-						cntVSteady--;
-						delay(100); //Задържа 1 секунда в момента когато има пълна вертикалност
-					}
 				}
 			}
 			//Проверка по Y
@@ -315,6 +305,7 @@ displayValues:
 			if(dy>(dOffY+29))
 			{
 				fAdjustY=1;
+				cntVSteady=STEADY_CYCLES;
 				LCD_PrCString("   0<<  ");
 				shadow_P1 |= RELY2;
 				shadow_P1 &= (~RELY1);				
@@ -324,6 +315,7 @@ displayValues:
 				if(dy<(dOffY-29))
 				{
 					fAdjustY=1;
+					cntVSteady=STEADY_CYCLES;
 					LCD_PrCString(" >>0    ");
 					shadow_P1 |= RELY1;
 					shadow_P1 &= (~RELY2);					
@@ -334,10 +326,15 @@ displayValues:
 					LCD_PrCString(">>>0<<< ");
 					shadow_P1 &= (~RELY2);
 					shadow_P1 &= (~RELY1);					
-					if(fAdjustX==0) delay(1000); //Задържа 1 секунда в момента когато има пълна вертикалност
 				}
 			}
+			
 			PRT1DR = shadow_P1;
+			if((fAdjustX==0) && (fAdjustY==0))
+			{
+				cntVSteady--;
+				delay(STEADY_TIMEC);
+			}
 		}	
 	}
 }	
